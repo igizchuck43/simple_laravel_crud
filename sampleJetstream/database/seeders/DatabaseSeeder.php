@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Laravel\Jetstream\Features;
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,11 +14,36 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        // Create Jordan's user
+        $this->seedJordan();
+        
+        // Create additional users
+        \App\Models\User::factory(100)->create();
+    }
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+    /**
+     * Seed Jordan's user.
+     */
+    private function seedJordan(): void
+    {
+        $jordan = User::factory()->create([
+            'name' => 'Ahairwe Jordan',
+            'email' => 'jordankatetegirwe@gmail.com',
+            'password' => Hash::make('kali')
+        ]);
+
+        // Ensure email verification is set
+        $jordan->markEmailAsVerified();
+
+        // Ensure Jordan has a personal team
+        if (Features::hasTeamFeatures()) {
+            $team = $jordan->ownedTeams()->create([
+                'name' => $jordan->name."'s Team",
+                'personal_team' => true,
+            ]);
+
+            $jordan->current_team_id = $team->id;
+            $jordan->save();
+        }
     }
 }
